@@ -1,5 +1,3 @@
-# src/config.py
-
 # Data source URLs
 # CORRECCIÓN FINAL: Esta es la URL correcta para el dataset de "NYPD Complaint Data Historic".
 COMPLAINTS_URL = "https://data.cityofnewyork.us/resource/qgea-i56i.csv?$limit=50000" # Limit to 50k for speed

@@ -1,124 +1,67 @@
 {
     "model_performance": {
-        "ACOSO Y OFENSAS": {
-            "precision": 0.32,
-            "recall": 0.27586206896551724,
-            "f1-score": 0.2962962962962963,
-            "support": 29.0
+        "No Violento": {
+            "precision": 0.9424460431654677,
+            "recall": 0.9776119402985075,
+            "f1-score": 0.9597069597069597,
+            "support": 134.0
         },
-        "ASALTO": {
-            "precision": 0.3548387096774194,
-            "recall": 0.3055555555555556,
-            "f1-score": 0.3283582089552239,
-            "support": 36.0
+        "Violento": {
+            "precision": 0.9508196721311475,
+            "recall": 0.8787878787878788,
+            "f1-score": 0.9133858267716536,
+            "support": 66.0
         },
-        "DA\u00d1O A LA PROPIEDAD": {
-            "precision": 0.2857142857142857,
-            "recall": 0.13333333333333333,
-            "f1-score": 0.18181818181818182,
-            "support": 15.0
-        },
-        "OFENSAS P\u00daBLICAS": {
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1-score": 0.0,
-            "support": 6.0
-        },
-        "ROBO": {
-            "precision": 0.6724137931034483,
-            "recall": 0.6290322580645161,
-            "f1-score": 0.65,
-            "support": 62.0
-        },
-        "ROBO DE VEH\u00cdCULO": {
-            "precision": 0.125,
-            "recall": 0.2857142857142857,
-            "f1-score": 0.17391304347826086,
-            "support": 7.0
-        },
-        "accuracy": 0.4,
+        "accuracy": 0.945,
         "macro avg": {
-            "precision": 0.2929944647491922,
-            "recall": 0.271582916938868,
-            "f1-score": 0.27173095509132716,
-            "support": 155.0
+            "precision": 0.9466328576483076,
+            "recall": 0.9281999095431932,
+            "f1-score": 0.9365463932393067,
+            "support": 200.0
         },
         "weighted avg": {
-            "precision": 0.44454556778396886,
-            "recall": 0.4,
-            "f1-score": 0.41714936868774977,
-            "support": 155.0
-        }
+            "precision": 0.9452093407241421,
+            "recall": 0.945,
+            "f1-score": 0.9444209858383087,
+            "support": 200.0
+        },
+        "auc_roc": 0.9872795115332429
     },
     "location_analysis": {
         "most_dangerous": {
-            "STREET": 212,
-            "RESIDENCE - APT. HOUSE": 198,
-            "RESIDENCE-HOUSE": 92,
-            "CHAIN STORE": 60,
-            "RESIDENCE - PUBLIC HOUSING": 45
+            "STREET": 299,
+            "RESIDENCE - APT. HOUSE": 226,
+            "RESIDENCE-HOUSE": 108,
+            "RESIDENCE - PUBLIC HOUSING": 70,
+            "CHAIN STORE": 64
         },
         "least_dangerous": {
-            "SMALL MERCHANT": 1,
-            "FOOD SUPERMARKET": 1,
-            "VIDEO STORE": 1,
-            "HIGHWAY/PARKWAY": 1,
-            "STORAGE FACILITY": 1
+            "MULTI DWELL - APT BUILD": 1,
+            "MAILBOX OUTSIDE": 1,
+            "CHURCH": 1,
+            "PRIVATE/PAROCHIAL SCHOOL": 1,
+            "PUBLIC SCHOOL": 1
         }
     },
     "feature_importances": {
-        "prem_typ_STREET": 0.11679535359144211,
-        "prem_typ_CHAIN STORE": 0.08727957308292389,
-        "prem_typ_CLOTHING/BOUTIQUE": 0.07364927977323532,
-        "prem_typ_FAST FOOD": 0.06029839813709259,
-        "prem_typ_RESIDENCE-HOUSE": 0.04967888817191124,
-        "prem_typ_TRANSIT - NYC SUBWAY": 0.04147539660334587,
-        "prem_typ_RESIDENCE - APT. HOUSE": 0.0384472981095314,
-        "prem_typ_TRANSIT FACILITY (OTHER)": 0.036298833787441254,
-        "prem_typ_DEPARTMENT STORE": 0.03358769789338112,
-        "month_sin": 0.03148746117949486,
-        "prem_typ_HIGHWAY/PARKWAY": 0.03118256852030754,
-        "prem_typ_DRUG STORE": 0.0296578761190176,
-        "prem_typ_COMMERCIAL BUILDING": 0.02890227921307087,
-        "prem_typ_RESIDENCE - PUBLIC HOUSING": 0.02791745960712433,
-        "prem_typ_OTHER": 0.02725996822118759,
-        "prem_typ_HOMELESS SHELTER": 0.025217656046152115,
-        "month_cos": 0.025202184915542603,
-        "is_weekend": 0.022850481793284416,
-        "prem_typ_RESTAURANT/DINER": 0.02252965234220028,
-        "latitude": 0.021174192428588867,
-        "prem_typ_TAXI (LIVERY LICENSED)": 0.020472945645451546,
-        "prem_typ_PARKING LOT/GARAGE (PUBLIC)": 0.020236004143953323,
-        "longitude": 0.01960904151201248,
-        "prem_typ_BEAUTY & NAIL SALON": 0.019299589097499847,
-        "prem_typ_PARK/PLAYGROUND": 0.016482489183545113,
-        "prem_typ_HOSPITAL": 0.0163994450122118,
-        "prem_typ_BUS STOP": 0.01629604585468769,
-        "prem_typ_GROCERY/BODEGA": 0.014360029250383377,
-        "prem_typ_DOCTOR/DENTIST OFFICE": 0.01005651243031025,
-        "prem_typ_CANDY STORE": 0.008013944141566753,
-        "prem_typ_HOTEL/MOTEL": 0.007881524041295052,
-        "hour_cos": 0.0,
-        "hour_sin": 0.0,
-        "prem_typ_AIRPORT TERMINAL": 0.0,
-        "is_night": 0.0,
-        "prem_typ_VARIETY STORE": 0.0,
-        "prem_typ_STORAGE FACILITY": 0.0,
-        "prem_typ_SMALL MERCHANT": 0.0,
-        "prem_typ_SHOE": 0.0,
-        "monthly_arrests": 0.0,
-        "monthly_stops": 0.0,
-        "prem_typ_CHURCH": 0.0,
-        "prem_typ_ATM": 0.0,
-        "prem_typ_PRIVATE/PAROCHIAL SCHOOL": 0.0,
-        "prem_typ_PARKING LOT/GARAGE (PRIVATE)": 0.0,
-        "prem_typ_CHECK CASHING BUSINESS": 0.0,
-        "prem_typ_BANK": 0.0,
-        "prem_typ_BAR/NIGHT CLUB": 0.0,
-        "prem_typ_FOOD SUPERMARKET": 0.0,
-        "prem_typ_BUS (NYC TRANSIT)": 0.0,
-        "prem_typ_DRY CLEANER/LAUNDRY": 0.0,
-        "prem_typ_CONSTRUCTION SITE": 0.0,
-        "prem_typ_VIDEO STORE": 0.0
+        "cat_ASSAULT 3 & RELATED OFFENSES": 0.12323576211929321,
+        "cat_HARRASSMENT 2": 0.11506788432598114,
+        "cat_PETIT LARCENY": 0.1126892939209938,
+        "cat_GRAND LARCENY": 0.09419911354780197,
+        "cat_FELONY ASSAULT": 0.08846357464790344,
+        "cat_GRAND LARCENY OF MOTOR VEHICLE": 0.06418541073799133,
+        "cat_BURGLARY": 0.049996040761470795,
+        "cat_ROBBERY": 0.039296068251132965,
+        "cat_MISCELLANEOUS PENAL LAW": 0.03773363679647446,
+        "cat_VEHICLE AND TRAFFIC LAWS": 0.03679603710770607,
+        "cat_OFF. AGNST PUB ORD SENSBLTY &": 0.02192104607820511,
+        "cat_DANGEROUS WEAPONS": 0.017162326723337173,
+        "cat_OFFENSES AGAINST PUBLIC ADMINI": 0.017093144357204437,
+        "cat_31": 0.01465501170605421,
+        "cat_OTHER STATE LAWS": 0.013417004607617855
+    },
+    "plot_paths": {
+        "confusion_matrix": "img/confusion_matrix.png",
+        "feature_importance": "img/feature_importance.png"
     }
 }

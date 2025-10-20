@@ -6,6 +6,7 @@ from src.preprocessing import preprocess_and_fuse_data # Renombramos la función
 from src.train import train_model_task
 from src.evaluate import evaluate_model_task
 import os
+import pandas as pd
 
 @flow(name="NYC Crime Full ETL and Training")
 def crime_prediction_pipeline():
@@ -33,7 +34,7 @@ def crime_prediction_pipeline():
     X_train, X_test, y_train, y_test, label_encoder, location_analysis = preprocess_and_fuse_data(
         complaints_df=raw_dataframes["complaints"],
         arrests_df=raw_dataframes["arrests"],
-        vehicle_stops_df=raw_dataframes["vehicle_stops"]
+        vehicle_stops_df=pd.DataFrame() # Pasamos un DF vacío, ya no lo usamos
     )
 
     model = train_model_task(X_train, y_train)

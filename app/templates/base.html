@@ -2,25 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Análisis de Crímenes en NYC{% endblock %}</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f8f9fa; color: #212529; }
-        .navbar { background-color: #343a40; padding: 15px 30px; text-align: center; }
-        .navbar a { margin: 0 20px; font-size: 1.1em; text-decoration: none; color: white; font-weight: 500; }
-        .navbar a:hover { color: #007bff; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 20px; }
-        h1, h2 { color: #333; text-align: center; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NYC Crime Analytics{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="navbar">
-        <a href="/">Dashboard</a>
-        <a href="/forecast">Herramienta de Predicción</a>
-        <a href="/map">Mapa de Densidad</a>
-    </div>
-    <div class="container">
-        {% block content %}{% endblock %}
+    <div class="page-container">
+        <aside class="sidebar">
+            <h1 class="sidebar-title">NYC Crime<br>Analytics</h1>
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">📊 Dashboard</a>
+                <a href="/forecast" class="nav-link {% if request.path == '/forecast' %}active{% endif %}">🔮 Predicción</a>
+                <a href="/map" class="nav-link {% if request.path == '/map' %}active{% endif %}">🗺️ Mapa Densidad</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
     </div>
 </body>
 </html>

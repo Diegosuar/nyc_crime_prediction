@@ -3,67 +3,91 @@
 {% block title %}Dashboard de Analítica{% endblock %}
 
 {% block content %}
-<style>
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .metric-card { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
-    .metric-card h3 { margin-top: 0; color: #007bff; }
-    .metric-card .value { font-size: 2.5em; font-weight: bold; color: #333; }
-    .plots { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-    .plot-container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
-    .location-lists { display: flex; justify-content: space-around; gap: 20px; margin-top: 20px; }
-    .location-lists ul { list-style-type: none; padding: 0; }
-    .location-lists li { background-color: #f1f1f1; margin: 5px 0; padding: 8px; border-radius: 4px; }
-    img { max-width: 100%; height: auto; }
-</style>
-
-<h1>Dashboard de Analítica de Crímenes</h1>
+<div class="content-header">
+    <h1>Dashboard de Analítica de Crímenes</h1>
+    <p class="subtitle">Métricas Clave del Modelo (Violento vs. No Violento)</p>
+</div>
 
 {% if metrics %}
-    <h2>Métricas Generales del Modelo</h2>
     <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="card metric-card">
             <h3>Precisión General (Accuracy)</h3>
-            <div class="value">{{ "%.2f"|format(metrics.model_performance.accuracy * 100) }}%</div>
+            <div class="value">{{ "%.2f"|format(metrics.accuracy * 100) }}%</div>
         </div>
-        <div class="metric-card">
-            <h3>Precisión Ponderada</h3>
-            <div class="value">{{ "%.2f"|format(metrics.model_performance['weighted avg'].precision * 100) }}%</div>
+        {% if metrics.auc_roc %}
+        <div class="card metric-card">
+            <h3>AUC-ROC</h3>
+            <div class="value">{{ "%.4f"|format(metrics.auc_roc) }}</div>
+            <small>Capacidad de distinguir clases</small>
         </div>
-        <div class="metric-card">
-            <h3>Recall Ponderado</h3>
-            <div class="value">{{ "%.2f"|format(metrics.model_performance['weighted avg'].recall * 100) }}%</div>
+        {% endif %}
+        {% if metrics['Violento'] and metrics['Violento']['f1-score'] %}
+        <div class="card metric-card">
+            <h3>F1-Score ('Violento')</h3>
+            <div class="value">{{ "%.4f"|format(metrics['Violento']['f1-score']) }}</div>
+            <small>Balance Precisión/Recall (Violento)</small>
+        </div>
+        {% endif %}
+        <div class="card metric-card">
+            <h3>F1-Score Ponderado</h3>
+            <div class="value">{{ "%.4f"|format(metrics['weighted avg']['f1-score']) }}</div>
+            <small>Balance general Precisión/Recall</small>
         </div>
     </div>
 
-    <h2>Análisis de Lugares</h2>
-    <div class="metric-card location-lists">
-        <div>
-            <h3>Top 5 Lugares Más Peligrosos</h3>
-            <ul>
-                {% for loc, count in metrics.location_analysis.most_dangerous.items() %}
-                    <li>{{ loc }} ({{ count }} incidentes)</li>
-                {% endfor %}
-            </ul>
+    {% if location_analysis %}
+    <div class="card full-width-card">
+        <h2>Análisis de Lugares (Frecuencia de Incidentes)</h2>
+        <div class="location-lists">
+            <div>
+                <h3>Top 5 Lugares Más Comunes</h3>
+                <ul>
+                    {% for loc, count in location_analysis.most_dangerous.items() %}
+                        <li>{{ loc }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if location_analysis.least_dangerous %}
+            <div>
+                <h3>Top 5 Lugares Menos Comunes</h3>
+                <ul>
+                     {% for loc, count in location_analysis.least_dangerous.items() %}
+                        <li>{{ loc }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
-        <div>
-            <h3>Top 5 Lugares Menos Peligrosos</h3>
-            <ul>
-                 {% for loc, count in metrics.location_analysis.least_dangerous.items() %}
-                    <li>{{ loc }} ({{ count }} incidentes)</li>
-                {% endfor %}
-            </ul>
+    </div>
+    {% endif %}
+
+    <div class="plots-grid">
+        {% if plot_paths and plot_paths.confusion_matrix %}
+        <div class="card plot-card">
+            <h2>Matriz de Confusión</h2>
+            <img src="{{ url_for('static', filename=plot_paths.confusion_matrix) }}" alt="Matriz de Confusión">
         </div>
+        {% endif %}
+        {% if plot_paths and plot_paths.feature_importance %}
+        <div class="card plot-card">
+            <h2>Importancia de Características</h2>
+            <img src="{{ url_for('static', filename=plot_paths.feature_importance) }}" alt="Importancia de Características">
+        </div>
+        {% endif %}
+        <div class="card plot-card">
+            <h2>Top 10 Crímenes Originales</h2>
+            <img src="{{ url_for('static', filename='img/crime_distribution.png') }}" alt="Distribución de Crímenes">
+        </div>
+        <div class="card plot-card">
+            <h2>Incidentes por Día de la Semana</h2>
+            <img src="{{ url_for('static', filename='img/crimes_by_day.png') }}" alt="Crímenes por Día">
+        </div>
+    </div>
+
+{% else %}
+    <div class="card error-card">
+        <p>⚠️ No se pudieron cargar las métricas. Por favor, asegúrate de que el pipeline (`python -m src.pipeline`) se haya ejecutado correctamente y que el archivo `reports/dashboard_metrics.json` exista.</p>
     </div>
 {% endif %}
 
-<div class="plots">
-    <div class="plot-container">
-        <h2>Top 10 Crímenes Más Comunes</h2>
-        <img src="{{ url_for('static', filename='img/crime_distribution.png') }}" alt="Distribución de Crímenes">
-    </div>
-    <div class="plot-container">
-        <h2>Incidentes por Día de la Semana</h2>
-        <img src="{{ url_for('static', filename='img/crimes_by_day.png') }}" alt="Crímenes por Día">
-    </div>
-</div>
 {% endblock %}
