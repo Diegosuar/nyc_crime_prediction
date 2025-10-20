@@ -1,43 +1,67 @@
-# NYC Crime Analytics - Proyecto de Machine Learning
+# NYC Crime Analytics - Predicción de Crímenes Violentos
 
-Este proyecto implementa un pipeline completo de ciencia de datos para analizar y predecir la probabilidad de robos en la ciudad de Nueva York. Utiliza un modelo de Machine Learning entrenado con datos históricos de denuncias y presenta los resultados a través de una aplicación web interactiva construida con Flask.
+Este proyecto implementa un pipeline completo de ciencia de datos para analizar datos de denuncias criminales en Nueva York y predecir si un incidente reportado corresponde a un **crimen violento (Felony) o no violento (Misdemeanor/Violation)**. Utiliza un modelo avanzado de Machine Learning (XGBoost) entrenado con características geoespaciales y temporales, logrando una alta precisión. Los resultados se presentan a través de una aplicación web interactiva construida con Flask.
 
 El flujo de trabajo está orquestado con **Prefect** para garantizar la reproducibilidad y la automatización del preprocesamiento de datos y el entrenamiento del modelo.
 
 ---
+## 🎯 Objetivo y Pregunta de Investigación
+
+El objetivo principal es responder a la pregunta:
+
+> **"Dadas las características de un incidente reportado en NYC (ubicación, hora, tipo de lugar, tipo de ofensa), ¿podemos predecir con alta precisión si se trata de un crimen violento (Felony)?"**
+
+Este enfoque permite evaluar el riesgo potencial de los incidentes y podría ser útil para la asignación de recursos de seguridad pública.
+
+---
 ## 🚀 Características Principales
 
-* **Dashboard de Analítica**: Una página principal con métricas clave del modelo y gráficos visuales sobre la distribución de crímenes, los días más peligrosos y los tipos de lugares con mayor incidencia.
-* **Pronóstico Interactivo de Robos**: Una herramienta que permite al usuario configurar condiciones (distrito, día, hora, tipo de lugar) para obtener una predicción en tiempo real de la probabilidad de que un incidente sea un robo.
-* **Mapa de Calor de Densidad**: Una visualización geoespacial que muestra las "zonas calientes" de denuncias de crímenes en toda la ciudad, superpuesta con los límites de los distritos (Boroughs) para un mejor contexto.
-* **Pipeline Automatizado con Prefect**: Todo el proceso de ETL (Extracción, Transformación y Carga) y entrenamiento del modelo está encapsulado en un flujo de Prefect, lo que facilita su ejecución y mantenimiento.
+* **Dashboard de Analítica**: Página principal con métricas clave del modelo (Precisión ~94.5%), gráficos sobre la distribución de crímenes originales y análisis de los lugares con mayor incidencia.
+* **Herramienta de Predicción**: Permite al usuario ingresar detalles de un incidente hipotético (ubicación, hora, día, mes, tipo de lugar, tipo de ofensa) para obtener una predicción en tiempo real de la **probabilidad de que sea un crimen violento (Felony)**.
+* **Mapa de Densidad**: Visualización geoespacial interactiva que muestra las "zonas calientes" de denuncias en la ciudad.
+* **Pipeline Automatizado con Prefect**: Proceso ETL robusto que incluye:
+    * Ingesta de datos de denuncias (dataset principal).
+    * Ingeniería de características avanzada (cíclicas temporales, flags de fin de semana/noche, clustering geoespacial K-Means).
+    * Balanceo de clases con SMOTE.
+    * Entrenamiento optimizado con XGBoost y RandomizedSearchCV.
+* **Alta Precisión**: El modelo final alcanza una **precisión general del 94.50%** en la predicción de crímenes violentos vs. no violentos.
+
+---
+## 📊 Datasets Utilizados
+
+* **Dataset Principal:** [NYPD Complaint Data Historic](https://data.cityofnewyork.us/resource/qgea-i56i.csv) - Contiene los registros históricos de denuncias, incluyendo tipo de ofensa, categoría legal (Felony, Misdemeanor, Violation), ubicación y fecha/hora. Es la fuente para las características y la variable objetivo (`is_violent`).
+* **(Opcional/Exploratorio):** Se exploró la integración con datos de arrestos y paradas de vehículos, pero no se utilizaron directamente en las características del modelo final debido a la dificultad para establecer una unión fiable o la falta de disponibilidad de datos consistentes.
 
 ---
 ## 📁 Estructura del Proyecto
 
-El proyecto está organizado de la siguiente manera para separar la lógica del pipeline, la aplicación web y los datos:
+El proyecto está organizado de la siguiente manera:
 
 ```bash
 /proyecto_crimen_nyc
 |
-|-- app/              # Contiene la aplicación web Flask
-|   |-- static/       # Archivos estáticos (imágenes, GeoJSON)
-|   |-- templates/    # Plantillas HTML de la aplicación
-|   |-- app.py        # Lógica principal del servidor web
+|-- app/              # Aplicación web Flask
+|   |-- static/       # Archivos estáticos (CSS, JS, imágenes generadas)
+|   |-- templates/    # Plantillas HTML (base, index, forecast, map)
+|   |-- app.py        # Lógica del servidor web
 |
-|-- data/             # Almacena los datasets
-|   |-- raw/          # Datos crudos descargados por el pipeline
-|   |-- processed/    # Datos limpios y listos para el modelo
+|-- data/             # Datasets
+|   |-- raw/          # Datos crudos descargados
 |
-|-- models/           # Modelos de ML y preprocesadores entrenados
+|-- models/           # Modelos y preprocesadores guardados (.joblib)
+|   |-- crime_predictor_model.joblib
+|   |-- scaler.joblib
+|   |-- label_encoder.joblib
 |
-|-- src/              # Contiene el pipeline de datos con Prefect
-|   |-- config.py
+|-- reports/          # Archivos generados por el pipeline
+|   |-- dashboard_metrics.json # Métricas y análisis para el dashboard
+|
+|-- src/              # Pipeline de datos con Prefect
 |   |-- data_ingestion.py
-|   |-- preprocessing.py
-|   |-- train.py
-|   |-- evaluate.py
-|   |-- pipeline.py
+|   |-- preprocessing.py # Contiene la lógica avanzada (clustering, binario, SMOTE)
+|   |-- train.py         # Contiene el entrenamiento con XGBoost y RandomizedSearch
+|   |-- evaluate.py      # Calcula métricas y análisis
+|   |-- pipeline.py      # Orquesta el flujo completo
 |
 |-- requirements.txt  # Dependencias del proyecto
 |-- run_app.py        # Script para iniciar la aplicación web
@@ -48,8 +72,8 @@ El proyecto está organizado de la siguiente manera para separar la lógica del 
 
 * Backend: Python, Flask
 * Orquestación de Datos: Prefect
-* Machine Learning: Scikit-learn
-* Manipulación de Datos: Pandas
+* Machine Learning: Scikit-learn, XGBoost, Imbalanced-learn (para SMOTE)
+* Manipulación de Datos: Pandas, numpy
 * Visualización: Matplotlib, Seaborn, Folium
 * Entorno: Conda / venv
 
@@ -111,6 +135,6 @@ La terminal te mostrará un mensaje indicando que el servidor está activo y esc
 7. Acceder a la Aplicación
 Abre tu navegador web y ve a la siguiente dirección:
 
-http://127.0.0.1:5001
+http://127.0.0.1:5000
 
 ¡Listo! Ahora puedes navegar por el dashboard, usar la herramienta de pronóstico y explorar el mapa de calor.
