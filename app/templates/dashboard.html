@@ -2,16 +2,16 @@
 {% block content %}
   <div class="bg-light p-5 rounded">
     <h1>Dashboard de Analítica de Crímenes (Crime Analytics Dashboard)</h1>
-    <p class="lead">Un resumen de los patrones encontrados en las denuncias de crímenes en NYC y el rendimiento del modelo predictivo. (A summary of patterns found in NYC crime complaints and the predictive model's performance.)</p>
+    <p class="lead">Un resumen de los patrones de gravedad de crímenes en NYC y el rendimiento del modelo predictivo. (A summary of crime severity patterns in NYC and the predictive model's performance.)</p>
   </div>
 
   <div class="row mt-4">
     <div class="col-md-6 mb-4">
       <div class="card text-center h-100">
-        <div class="card-header fw-bold">Precisión General del Modelo (Overall Model Accuracy)</div>
+        <div class="card-header fw-bold">{{ metric_name }}</div>
         <div class="card-body">
-          <h1 class="card-title display-4">{{ accuracy }}</h1>
-          <p class="card-text">Porcentaje de predicciones correctas sobre el dataset completo. (Percentage of correct predictions on the full dataset.)</p>
+          <h1 class="card-title display-4">{{ model_metric }}</h1>
+          <p class="card-text">Esta es una métrica más robusta que la "Accuracy" para datasets desbalanceados. (This is a more robust metric than Accuracy for imbalanced datasets.)</p>
         </div>
       </div>
     </div>
@@ -52,7 +52,7 @@
   <div class="row">
     <div class="col-md-6 mb-4">
       <div class="card">
-        <div class="card-header fw-bold text-white bg-danger">🚨 Top 5 Lugares Más Peligrosos (Top 5 Most Dangerous Locations)</div>
+        <div class="card-header fw-bold text-white bg-danger">🚨 Top 5 Lugares con Más Denuncias (Top 5 Locations by Complaint Volume)</div>
         <ul class="list-group list-group-flush">
           {% for place, count in most_dangerous.items() %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -65,7 +65,7 @@
     </div>
     <div class="col-md-6 mb-4">
       <div class="card">
-        <div class="card-header fw-bold text-white bg-success">✅ Top 5 Lugares Menos Peligrosos (Top 5 Least Dangerous Locations)</div>
+        <div class="card-header fw-bold text-white bg-success">✅ Top 5 Lugares con Menos Denuncias (Top 5 Locations by Complaint Volume)</div>
         <ul class="list-group list-group-flush">
           {% for place, count in least_dangerous.items() %}
             <li class="list-group-item d-flex justify-content-between align-items-center">

@@ -9,7 +9,7 @@ def fetch_data(url: str, save_path: str):
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
-    df = pd.read_csv(url)
+    df = pd.read_csv(url, dtype={'cmplnt_num': str})
     df.to_csv(save_path, index=False)
     print(f"Data saved to {save_path}")
     return save_path

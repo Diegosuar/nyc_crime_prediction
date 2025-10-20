@@ -1,40 +1,42 @@
 # src/preprocessing.py
 import pandas as pd
-import numpy as np # Necesitamos numpy
+import numpy as np
 
 def preprocess(raw_data_path: str, processed_data_path: str, target: str):
-    """Cleans data, engineers features, and creates the binary target variable."""
-    print("Starting preprocessing for regression task...")
-    df = pd.read_csv(raw_data_path, low_memory=False)
+    """Limpia datos y crea características para la tarea de clasificación multiclase."""
+    print(f"Starting preprocessing for multiclass task (Target: {target})...")
+    df = pd.read_csv(raw_data_path, low_memory=False, dtype={'cmplnt_num': str})
 
-    print("Columns found in raw data:", df.columns.tolist())
-    
     col_date = 'cmplnt_fr_dt'
     col_time = 'cmplnt_fr_tm'
     col_premise = 'prem_typ_desc'
-    col_offense = 'ofns_desc' # Columna clave para definir "robo"
+    # --- CAMBIO DE LÓGICA ---
+    # 'law_cat_cd' (nuestro target) ahora se llama 'target'
+    col_law_cat = target 
 
-    # --- Creación de la Variable Objetivo (Target) ---
-    # Creamos la columna 'is_robbery'. Será 1 si la descripción es 'ROBBERY', y 0 en otro caso.
-    # Usamos .str.contains() para ser más robustos por si hay variaciones.
-    df[target] = np.where(df[col_offense].str.contains('ROBBERY', na=False), 1, 0)
-    
     # Limpieza básica
-    critical_cols = ['latitude', 'longitude', col_date, col_time, col_premise]
+    critical_cols = ['latitude', 'longitude', col_date, col_time, col_premise, col_law_cat]
     df.dropna(subset=critical_cols, inplace=True)
     
     # Ingeniería de Características (Feature Engineering)
     df[col_date] = pd.to_datetime(df[col_date], errors='coerce')
     df[col_time] = pd.to_datetime(df[col_time], format='%H:%M:%S', errors='coerce').dt.hour
+    
+    # Nos aseguramos de que solo se usen las 3 clases principales
+    valid_targets = ['FELONY', 'MISDEMEANOR', 'VIOLATION']
+    df = df[df[col_law_cat].isin(valid_targets)]
+    
     df.dropna(subset=[col_date, col_time], inplace=True)
 
     df.rename(columns={col_time: 'hour'}, inplace=True)
     df['day_of_week'] = df[col_date].dt.day_name()
     
+    # Agrupar premisas poco comunes en 'OTHER'
     top_premises = df[col_premise].value_counts().nlargest(10).index
     df[col_premise] = df[col_premise].apply(lambda x: x if x in top_premises else 'OTHER')
 
     # Seleccionar columnas finales y guardar
+    # (Ya no necesitamos crear 'is_robbery')
     final_cols = [target] + ['latitude', 'longitude', col_premise, 'hour', 'day_of_week']
     df_processed = df[final_cols]
     

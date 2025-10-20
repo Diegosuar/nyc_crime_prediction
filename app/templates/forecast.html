@@ -2,8 +2,8 @@
 {% block content %}
 <div class="container">
   <div class="bg-light p-5 rounded mb-4">
-    <h1>Pronóstico de Probabilidad de Robo (Robbery Probability Forecast)</h1>
-    <p class="lead">Configura las condiciones para estimar la probabilidad de que un incidente sea un robo. (Set the conditions to estimate the probability of an incident being a robbery.)</p>
+    <h1>Pronóstico de Gravedad del Crimen (Crime Severity Forecast)</h1>
+    <p class="lead">Configura las condiciones para estimar la gravedad probable de un incidente. (Set the conditions to estimate the probable severity of an incident.)</p>
   </div>
 
   <div class="row">
@@ -39,39 +39,64 @@
               {% endfor %}
             </select>
           </div>
-          <button type="submit" class="btn btn-primary w-100 mt-3">Predecir Probabilidad (Predict Probability)</button>
+          <button type="submit" class="btn btn-primary w-100 mt-3">Predecir Gravedad (Predict Severity)</button>
         </form>
       </div>
     </div>
 
     <div class="col-md-7">
       <h3>Nivel de Riesgo (Risk Level)</h3>
-      <div class="card p-4 text-center">
-        {% if probability %}
-          {% set prob_float = probability|float %}
-          {% if prob_float > 20 %}
-            {% set color = 'danger' %}
-            {% set risk_level = 'ALTO' %}
-          {% elif prob_float > 10 %}
-            {% set color = 'warning' %}
-            {% set risk_level = 'MODERADO' %}
-          {% else %}
-            {% set color = 'success' %}
-            {% set risk_level = 'BAJO' %}
-          {% endif %}
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          
+          {% if prediction_results %}
+            
+            {% for result in prediction_results %}
+              <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                  <span class="fw-bold">{{ result.name }}</span>
+                  <span class="fw-bold">{{ result.probability }}%</span>
+                </div>
+                <div class="progress" style="height: 25px;">
 
-          <h5 class="mb-3">Probabilidad de Robo:</h5>
-          <h1 class="display-1 fw-bold text-{{ color }}">{{ probability }}%</h1>
-          <div class="progress mt-3" style="height: 40px;">
-            <div class="progress-bar bg-{{ color }} progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ probability }}%;" aria-valuenow="{{ probability }}" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          <p class="mt-3 fs-4">El nivel de riesgo es <strong class="text-{{ color }}">{{ risk_level }}</strong>.</p>
-        
-        {% else %}
-          <div class="alert alert-info">
-            <p class="mb-0">Ajusta los valores y haz clic en "Predecir" para ver el nivel de riesgo. (Adjust values and click "Predict" to see the risk level.)</p>
-          </div>
-        {% endif %}
+                  {% if result.name == 'FELONY' %}
+                    {% set color_class = 'bg-danger' %}
+                  {% elif result.name == 'MISDEMEANOR' %}
+                    {% set color_class = 'bg-warning text-dark' %}
+                  {% else %}
+                    {% set color_class = 'bg-success' %}
+                  {% endif %}
+                  
+                  <div class="progress-bar {{ color_class }}" role="progressbar" style="width: 50%;" aria-valuenow="{{ result.probability }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ result.probability }}%
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+            
+            <hr>
+            {% set top_prediction = prediction_results[0] %}
+            {% if top_prediction.name == 'FELONY' %}
+              <div class="alert alert-danger text-center" role="alert">
+                Predicción Principal: <strong>{{ top_prediction.name }}</strong> (Riesgo ALTO).
+              </div>
+            {% elif top_prediction.name == 'MISDEMEANOR' %}
+              <div class="alert alert-warning text-center" role="alert">
+                Predicción Principal: <strong>{{ top_prediction.name }}</strong> (Riesgo MODERADO).
+              </div>
+            {% else %}
+              <div class="alert alert-success text-center" role="alert">
+                Predicción Principal: <strong>{{ top_prediction.name }}</strong> (Riesgo BAJO).
+              </div>
+            {% endif %}
+
+          {% else %}
+            <div class="alert alert-info" role="alert">
+              Ajusta los valores y haz clic en "Predecir" para ver el nivel de riesgo.
+              (Adjust values and click "Predict" to see the risk level.)
+            </div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

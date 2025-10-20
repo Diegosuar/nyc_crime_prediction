@@ -25,7 +25,7 @@ FEATURES = [
 ]
 
 # The variable we want to predict
-TARGET = 'is_robbery'
+TARGET = 'law_cat_cd'  # Nivel de Ley (e.g., FELONY, MISDEMEANOR)
 
 # Features that need categorical encoding
 CATEGORICAL_FEATURES = ['prem_typ_desc', 'day_of_week']

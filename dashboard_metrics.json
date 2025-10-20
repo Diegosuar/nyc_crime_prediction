@@ -1,0 +1,5 @@
+{
+    "accuracy_test_set": "46.97%",
+    "weighted_f1_test_set": "47.87%",
+    "total_records_analyzed": "49,991"
+}

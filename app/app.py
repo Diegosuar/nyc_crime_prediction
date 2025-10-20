@@ -2,43 +2,59 @@
 from flask import Flask, render_template, url_for, request
 import pandas as pd
 import joblib
-
+import json  # <-- Asegúrate de que esto esté importado
 import matplotlib
-matplotlib.use('Agg')  
+matplotlib.use('Agg') 
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import folium
 from folium.plugins import HeatMap
 
-
 # --- Configuración Inicial ---
 app = Flask(__name__)
 STATIC_FOLDER = 'app/static/img'
-os.makedirs(STATIC_FOLDER, exist_ok=True) # Asegura que la carpeta para imágenes exista
+os.makedirs(STATIC_FOLDER, exist_ok=True) 
 
-# --- Cargar Datos y Modelo ---
+# --- Cargar Artefactos del Pipeline ---
 try:
+    # Cargar los datos procesados por el pipeline
     df = pd.read_csv('data/processed/processed_complaints.csv')
+    
+    # Cargar el pipeline COMPLETO (preprocesador + modelo)
+    # Este único archivo .joblib contiene todo lo que necesitamos
     model = joblib.load('models/random_forest_classifier.joblib')
-    print("✅ Modelo y datos cargados exitosamente.")
+    
+    # --- MEJORA: Cargar métricas desde el pipeline ---
+    # Leemos los resultados guardados por evaluate.py
+    with open('dashboard_metrics.json', 'r') as f:
+        metrics = json.load(f)
+        
+    print("✅ Modelo, datos y métricas cargados exitosamente.")
+
 except Exception as e:
     print(f"🛑 Error cargando los archivos: {e}.")
+    print("🛑 Asegúrate de ejecutar 'python -m src.pipeline' primero.")
     df = pd.DataFrame()
     model = None
+    metrics = {
+        "accuracy_test_set": "Error",
+        "weighted_f1_test_set": "Error",
+        "total_records_analyzed": "Error"
+    }
 
-# --- Función para generar gráficos ---
+# --- Función para generar gráficos (Corregida) ---
 def generate_plots():
     if df.empty:
         return
 
     # Gráfico 1: Distribución de Tipos de Crimen
     plt.figure(figsize=(8, 5))
-    # CORRECCIÓN: Se añade el DataFrame completo con data=df
+    law_counts = df['law_cat_cd'].value_counts()
     sns.countplot(
         data=df, 
         y='law_cat_cd', 
-        order=df['law_cat_cd'].value_counts().index, 
+        order=law_counts.index, 
         palette='viridis', 
         hue='law_cat_cd', 
         legend=False
@@ -53,13 +69,13 @@ def generate_plots():
     # Gráfico 2: Crímenes por Día de la Semana
     days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     plt.figure(figsize=(10, 6))
-    # CORRECCIÓN: Se añade el DataFrame completo con data=df
     sns.countplot(
         data=df, 
         x='day_of_week', 
         order=days_order, 
         palette='mako', 
-        hue='day_of_week', 
+        hue='day_of_week',
+        hue_order=days_order,
         legend=False
     )
     plt.title('Denuncias de Crímenes por Día de la Semana')
@@ -72,26 +88,24 @@ def generate_plots():
     
     print("✅ Gráficos generados y guardados correctamente.")
 
-# --- Ruta para el Dashboard Principal ---
+# --- Ruta para el Dashboard Principal (ACTUALIZADA) ---
 @app.route('/')
 def dashboard():
     if df.empty or model is None:
         return "<h3>Error: Archivos no encontrados.</h3><p>Ejecuta primero el pipeline de Prefect: <code>python -m src.pipeline</code></p>"
 
-    # Métricas clave
-    X = df.drop('law_cat_cd', axis=1)
-    y = df['law_cat_cd']
-    accuracy = model.score(X, y) * 100
-    num_datos = f"{len(df):,}"
+    # --- Usar métricas del pipeline ---
+    f1_score = metrics.get('weighted_f1_test_set', 'N/A')
+    num_datos = metrics.get('total_records_analyzed', 'N/A')
     
     # Análisis de Peligrosidad por Lugar
-    # Usamos 'prem_typ_desc' como un proxy para "área" o "lugar"
     premise_counts = df['prem_typ_desc'].value_counts()
     most_dangerous = premise_counts.head(5).to_dict()
     least_dangerous = premise_counts.tail(5).to_dict()
 
     return render_template('dashboard.html',
-                           accuracy=f"{accuracy:.2f}%",
+                           model_metric=f1_score,
+                           metric_name="F1-Score Ponderado (Test Set)", # Nuevo nombre para la métrica
                            num_datos=num_datos,
                            most_dangerous=most_dangerous,
                            least_dangerous=least_dangerous,
@@ -107,51 +121,70 @@ BOROUGH_COORDINATES = {
     "STATEN ISLAND": {"lat": 40.5795, "lon": -74.1502}
 }
 
-# --- RUTA DE PRONÓSTICO ACTUALIZADA PARA REGRESIÓN ---
+# --- RUTA DE PRONÓSTICO (ACTUALIZADA PARA MULTICLASE) ---
 @app.route('/forecast', methods=['GET', 'POST'])
 def forecast():
+    if df.empty or model is None:
+        return "<h3>Error: Archivos no encontrados.</h3><p>Ejecuta primero el pipeline de Prefect: <code>python -m src.pipeline</code></p>"
+        
     premise_types = sorted(df['prem_typ_desc'].unique())
     days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     borough_names = list(BOROUGH_COORDINATES.keys())
     
-    robbery_probability = None
+    # --- ESTA ES LA LÓGICA NUEVA ---
+    prediction_results = None # Esta es la variable que espera el HTML
     input_values = {}
 
     if request.method == 'POST':
-        selected_borough = request.form['borough']
-        coords = BOROUGH_COORDINATES[selected_borough]
+        try:
+            selected_borough = request.form['borough']
+            coords = BOROUGH_COORDINATES[selected_borough]
 
-        input_values = {
-            'latitude': coords['lat'],
-            'longitude': coords['lon'],
-            'hour': int(request.form['hour']),
-            'day_of_week': request.form['day_of_week'],
-            'prem_typ_desc': request.form['premise_type'],
-            'borough': selected_borough
-        }
+            input_values = {
+                'latitude': coords['lat'],
+                'longitude': coords['lon'],
+                'hour': int(request.form['hour']),
+                'day_of_week': request.form['day_of_week'],
+                'prem_typ_desc': request.form['premise_type'],
+                'borough': selected_borough 
+            }
 
-        predict_df = pd.DataFrame([{
-            'latitude': input_values['latitude'],
-            'longitude': input_values['longitude'],
-            'hour': input_values['hour'],
-            'day_of_week': input_values['day_of_week'],
-            'prem_typ_desc': input_values['prem_typ_desc']
-        }])
+            # Definimos las columnas en el orden que espera el pipeline
+            features_order = [
+                'latitude', 'longitude', 'prem_typ_desc', 'hour', 'day_of_week'
+            ]
+            
+            # Creamos el DataFrame para predecir
+            predict_df = pd.DataFrame([input_values], columns=features_order)
 
-        # --- Predicción de Probabilidad ---
-        # model.predict_proba(df) devuelve [[prob_clase_0, prob_clase_1]]
-        # Queremos la probabilidad de la clase 1 (es robo)
-        prob_is_robbery = model.predict_proba(predict_df)[0][1] * 100
-        robbery_probability = f"{prob_is_robbery:.2f}"
+            # --- Predicción Multiclase ---
+            probabilities = model.predict_proba(predict_df)[0]
+            
+            # Mapeamos las probabilidades a los nombres de las clases
+            prediction_results = []
+            for i, class_name in enumerate(model.classes_):
+                prediction_results.append({
+                    "name": class_name,
+                    # Esta variable ahora se llama 'probability' para el HTML
+                    "probability": f"{probabilities[i] * 100:.2f}" 
+                })
+            
+            # Ordenamos por probabilidad descendente para la UI
+            prediction_results = sorted(prediction_results, key=lambda x: float(x['probability']), reverse=True)
+
+        except Exception as e:
+            print(f"🛑 Error durante la predicción: {e}")
+            prediction_results = [{"name": "Error", "probability": "0.00"}]
 
     return render_template('forecast.html', 
                            premise_types=premise_types, 
                            days=days_of_week,
                            boroughs=borough_names,
-                           probability=robbery_probability,
+                           # Pasamos la lista de resultados
+                           prediction_results=prediction_results, # Esta variable ahora existe
                            input_values=input_values)
 
-
+# --- RUTA DE MAPA DE CALOR (Sin cambios) ---
 @app.route('/heatmap')
 def heatmap():
     if df.empty:
@@ -159,26 +192,16 @@ def heatmap():
 
     m = folium.Map(location=[40.7128, -74.0060], zoom_start=11, tiles="CartoDB positron")
 
-    # --- CORRECCIÓN: Limpiar los datos de coordenadas antes de usarlos ---
-    # 1. Crear un DataFrame temporal solo con las coordenadas
     coords_df = df[['latitude', 'longitude']].copy()
-    
-    # 2. Eliminar cualquier fila que tenga valores nulos en latitud o longitud
     coords_df.dropna(subset=['latitude', 'longitude'], inplace=True)
-    
-    # 3. Convertir los datos limpios a una lista
     heat_data = coords_df.values.tolist()
     
-    # 4. (Opcional pero recomendado) Verificar si la lista no está vacía
     if heat_data:
-        # Añadir la capa de mapa de calor solo si hay datos válidos
         HeatMap(heat_data, radius=12, blur=15).add_to(m)
         print(f"✅ Mapa de calor generado con {len(heat_data)} puntos.")
     else:
         print("🛑 Advertencia: No se encontraron coordenadas válidas para generar el mapa de calor.")
 
-
-    # Cargar la capa de distritos (sin cambios)
     boroughs_geojson_url = 'https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=GeoJSON'
     try:
         folium.GeoJson(
@@ -197,6 +220,11 @@ def heatmap():
 
     map_html = m._repr_html_()
     return render_template('heatmap.html', map_html=map_html)
-# --- Generar los gráficos una vez al iniciar la app ---
-generate_plots()
 
+# --- Generar los gráficos una vez al iniciar la app ---
+if __name__ == "__main__":
+    print("Generando gráficos estáticos para el dashboard...")
+    generate_plots() # Genera los gráficos estáticos antes de arrancar
+    print("Iniciando la aplicación Flask en http://127.0.0.1:5000")
+    # Si 'run_app.py' usa puerto 5001, puedes cambiarlo aquí
+    app.run(debug=True, port=5000)
