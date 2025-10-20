@@ -1,45 +1,48 @@
-# src/train.py
+# src/train.py (ACTUALIZADO CON XGBOOST)
+
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.model_selection import train_test_split
-import joblib
+from prefect import task
+from xgboost import XGBClassifier # Importamos el nuevo modelo
+from sklearn.model_selection import RandomizedSearchCV
+from joblib import dump
 
-from .config import FEATURES, TARGET, CATEGORICAL_FEATURES, NUMERICAL_FEATURES
-
-def train_model(processed_data_path: str, model_path: str, preprocessor_path: str):
-    """Trains the model using a preprocessing pipeline and saves both.
-       Entrena el modelo usando un pipeline de preprocesamiento y guarda ambos."""
-    print("Starting model training...")
-    df = pd.read_csv(processed_data_path)
-
-    X = df[FEATURES]
-    y = df[TARGET]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+@task
+def train_model_task(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Busca los mejores hiperparámetros para un XGBClassifier y entrena el modelo final.
+    """
+    print(" -> Iniciando búsqueda de hiperparámetros con XGBoost...")
     
-    # Create a preprocessing pipeline
-    # This pipeline handles scaling for numbers and one-hot encoding for categories
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), NUMERICAL_FEATURES),
-            ('cat', OneHotEncoder(handle_unknown='ignore'), CATEGORICAL_FEATURES)
-        ])
-
-    # Create the full model pipeline
-    model_pipeline = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('classifier', RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
-    ])
-
-    # Train the model
-    model_pipeline.fit(X_train, y_train)
-
-    # Save the fitted preprocessor and the full model pipeline
-    joblib.dump(preprocessor.fit(X_train), preprocessor_path)
-    joblib.dump(model_pipeline, model_path)
+    # Definimos un espacio de búsqueda de parámetros específico para XGBoost
+    param_distributions = {
+        'n_estimators': [100, 200, 300],
+        'learning_rate': [0.01, 0.1, 0.2],
+        'max_depth': [3, 5, 7, 9],
+        'subsample': [0.7, 0.8, 0.9, 1.0],
+        'colsample_bytree': [0.7, 0.8, 0.9, 1.0]
+    }
     
-    print(f"Model training complete. Model saved to {model_path}")
-    return model_path
+    # Creamos el objeto de búsqueda con XGBClassifier
+    random_search = RandomizedSearchCV(
+        estimator=XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='mlogloss'),
+        param_distributions=param_distributions,
+        n_iter=20, # Probar 20 combinaciones al azar
+        cv=3,      # Validación cruzada de 3 folds
+        verbose=2,
+        random_state=42,
+        n_jobs=-1
+    )
+    
+    # Ejecutamos la búsqueda
+    random_search.fit(X_train, y_train)
+    
+    print(f" -> Mejores parámetros encontrados: {random_search.best_params_}")
+    
+    # El mejor modelo ya está entrenado
+    best_model = random_search.best_estimator_
+    
+    # Guardar el mejor modelo encontrado
+    dump(best_model, 'models/crime_predictor_model.joblib')
+    print(" -> Mejor modelo (XGBoost) guardado en 'models/crime_predictor_model.joblib'")
+    
+    return best_model

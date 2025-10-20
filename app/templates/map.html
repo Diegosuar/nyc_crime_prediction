@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Densidad de Crímenes{% endblock %}
+
+{% block head %}
+    {{ folium_map | safe }}
+{% endblock %}
+
+{% block content %}
+    <h1>Mapa de Densidad de Crímenes en NYC</h1>
+    {% endblock %}

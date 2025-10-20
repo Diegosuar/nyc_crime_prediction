@@ -1,202 +1,137 @@
-# app/app.py
-from flask import Flask, render_template, url_for, request
-import pandas as pd
-import joblib
+# app/app.py (VERSIÓN FINAL, COMPLETA Y ORDENADA)
 
 import matplotlib
-matplotlib.use('Agg')  
+matplotlib.use('Agg')
+
+import pandas as pd
+import numpy as np
+from flask import Flask, render_template, request
+from joblib import load
+import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-import os
 import folium
 from folium.plugins import HeatMap
+import json
 
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
-# --- Configuración Inicial ---
-app = Flask(__name__)
-STATIC_FOLDER = 'app/static/img'
-os.makedirs(STATIC_FOLDER, exist_ok=True) # Asegura que la carpeta para imágenes exista
-
-# --- Cargar Datos y Modelo ---
+# --- 1. Carga de Archivos (se ejecuta una sola vez al iniciar) ---
+model, scaler, label_encoder, df, model_columns, metrics = [None] * 6
 try:
-    df = pd.read_csv('data/processed/processed_complaints.csv')
-    model = joblib.load('models/random_forest_classifier.joblib')
-    print("✅ Modelo y datos cargados exitosamente.")
+    model = load('models/crime_predictor_model.joblib')
+    scaler = load('models/scaler.joblib')
+    label_encoder = load('models/label_encoder.joblib')
+    model_columns = model.feature_names_in_
+    df = pd.read_csv('data/raw/complaints.csv', low_memory=False)
+    df.columns = df.columns.str.lower()
+    
+    with open('reports/dashboard_metrics.json', 'r') as f:
+        metrics = json.load(f)
+    
+    print("✅ Modelo, datos y métricas cargados exitosamente.")
 except Exception as e:
-    print(f"🛑 Error cargando los archivos: {e}.")
-    df = pd.DataFrame()
-    model = None
+    print(f"❌ Error al cargar archivos: {e}")
 
-# --- Función para generar gráficos ---
+# --- 2. Definición de la Función para Generar Gráficos ---
 def generate_plots():
-    if df.empty:
+    if df is None or df.empty:
+        print(" -> No se pueden generar gráficos, DataFrame vacío.")
         return
 
-    # Gráfico 1: Distribución de Tipos de Crimen
-    plt.figure(figsize=(8, 5))
-    # CORRECCIÓN: Se añade el DataFrame completo con data=df
+    img_dir = os.path.join('app', 'static', 'img')
+    os.makedirs(img_dir, exist_ok=True)
+
+    # Gráfico 1: Distribución de Crímenes
+    plt.figure(figsize=(10, 6))
     sns.countplot(
+        y='ofns_desc', 
         data=df, 
-        y='law_cat_cd', 
-        order=df['law_cat_cd'].value_counts().index, 
+        order=df['ofns_desc'].value_counts().nlargest(10).index, 
         palette='viridis', 
-        hue='law_cat_cd', 
+        hue='ofns_desc', 
         legend=False
     )
-    plt.title('Cantidad de Crímenes por Categoría')
-    plt.xlabel('Número de Denuncias')
-    plt.ylabel('Categoría de Crimen')
+    plt.title('Top 10 Crímenes Más Comunes')
+    plt.xlabel('Número de Incidentes')
+    plt.ylabel('Tipo de Crimen')
     plt.tight_layout()
-    plt.savefig(os.path.join(STATIC_FOLDER, 'crime_distribution.png'))
+    plt.savefig(os.path.join(img_dir, 'crime_distribution.png'))
     plt.close()
 
     # Gráfico 2: Crímenes por Día de la Semana
-    days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    df['cmplnt_fr_dt'] = pd.to_datetime(df['cmplnt_fr_dt'], errors='coerce')
+    df.dropna(subset=['cmplnt_fr_dt'], inplace=True)
+    df['day_of_week'] = df['cmplnt_fr_dt'].dt.day_name()
     plt.figure(figsize=(10, 6))
-    # CORRECCIÓN: Se añade el DataFrame completo con data=df
     sns.countplot(
-        data=df, 
         x='day_of_week', 
-        order=days_order, 
-        palette='mako', 
+        data=df, 
+        order=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], 
+        palette='plasma', 
         hue='day_of_week', 
         legend=False
     )
-    plt.title('Denuncias de Crímenes por Día de la Semana')
-    plt.xlabel('Día de la Semana')
-    plt.ylabel('Número de Denuncias')
-    plt.xticks(rotation=45)
+    plt.title('Incidentes por Día de la Semana')
+    plt.xlabel('Día')
+    plt.ylabel('Número de Incidentes')
     plt.tight_layout()
-    plt.savefig(os.path.join(STATIC_FOLDER, 'crimes_by_day.png'))
+    plt.savefig(os.path.join(img_dir, 'crimes_by_day.png'))
     plt.close()
     
     print("✅ Gráficos generados y guardados correctamente.")
 
-# --- Ruta para el Dashboard Principal ---
-@app.route('/')
-def dashboard():
-    if df.empty or model is None:
-        return "<h3>Error: Archivos no encontrados.</h3><p>Ejecuta primero el pipeline de Prefect: <code>python -m src.pipeline</code></p>"
-
-    # Métricas clave
-    X = df.drop('law_cat_cd', axis=1)
-    y = df['law_cat_cd']
-    accuracy = model.score(X, y) * 100
-    num_datos = f"{len(df):,}"
-    
-    # Análisis de Peligrosidad por Lugar
-    # Usamos 'prem_typ_desc' como un proxy para "área" o "lugar"
-    premise_counts = df['prem_typ_desc'].value_counts()
-    most_dangerous = premise_counts.head(5).to_dict()
-    least_dangerous = premise_counts.tail(5).to_dict()
-
-    return render_template('dashboard.html',
-                           accuracy=f"{accuracy:.2f}%",
-                           num_datos=num_datos,
-                           most_dangerous=most_dangerous,
-                           least_dangerous=least_dangerous,
-                           plot1_url=url_for('static', filename='img/crime_distribution.png'),
-                           plot2_url=url_for('static', filename='img/crimes_by_day.png'))
-
-
-BOROUGH_COORDINATES = {
-    "MANHATTAN": {"lat": 40.7831, "lon": -73.9712},
-    "BROOKLYN": {"lat": 40.6782, "lon": -73.9442},
-    "QUEENS": {"lat": 40.7282, "lon": -73.7949},
-    "BRONX": {"lat": 40.8448, "lon": -73.8648},
-    "STATEN ISLAND": {"lat": 40.5795, "lon": -74.1502}
-}
-
-# --- RUTA DE PRONÓSTICO ACTUALIZADA PARA REGRESIÓN ---
-@app.route('/forecast', methods=['GET', 'POST'])
-def forecast():
-    premise_types = sorted(df['prem_typ_desc'].unique())
-    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    borough_names = list(BOROUGH_COORDINATES.keys())
-    
-    robbery_probability = None
-    input_values = {}
-
-    if request.method == 'POST':
-        selected_borough = request.form['borough']
-        coords = BOROUGH_COORDINATES[selected_borough]
-
-        input_values = {
-            'latitude': coords['lat'],
-            'longitude': coords['lon'],
-            'hour': int(request.form['hour']),
-            'day_of_week': request.form['day_of_week'],
-            'prem_typ_desc': request.form['premise_type'],
-            'borough': selected_borough
-        }
-
-        predict_df = pd.DataFrame([{
-            'latitude': input_values['latitude'],
-            'longitude': input_values['longitude'],
-            'hour': input_values['hour'],
-            'day_of_week': input_values['day_of_week'],
-            'prem_typ_desc': input_values['prem_typ_desc']
-        }])
-
-        # --- Predicción de Probabilidad ---
-        # model.predict_proba(df) devuelve [[prob_clase_0, prob_clase_1]]
-        # Queremos la probabilidad de la clase 1 (es robo)
-        prob_is_robbery = model.predict_proba(predict_df)[0][1] * 100
-        robbery_probability = f"{prob_is_robbery:.2f}"
-
-    return render_template('forecast.html', 
-                           premise_types=premise_types, 
-                           days=days_of_week,
-                           boroughs=borough_names,
-                           probability=robbery_probability,
-                           input_values=input_values)
-
-
-@app.route('/heatmap')
-def heatmap():
-    if df.empty:
-        return "<h3>Error: No se pudieron cargar los datos.</h3><p>Por favor, ejecuta el pipeline de Prefect primero.</p>"
-
-    m = folium.Map(location=[40.7128, -74.0060], zoom_start=11, tiles="CartoDB positron")
-
-    # --- CORRECCIÓN: Limpiar los datos de coordenadas antes de usarlos ---
-    # 1. Crear un DataFrame temporal solo con las coordenadas
-    coords_df = df[['latitude', 'longitude']].copy()
-    
-    # 2. Eliminar cualquier fila que tenga valores nulos en latitud o longitud
-    coords_df.dropna(subset=['latitude', 'longitude'], inplace=True)
-    
-    # 3. Convertir los datos limpios a una lista
-    heat_data = coords_df.values.tolist()
-    
-    # 4. (Opcional pero recomendado) Verificar si la lista no está vacía
-    if heat_data:
-        # Añadir la capa de mapa de calor solo si hay datos válidos
-        HeatMap(heat_data, radius=12, blur=15).add_to(m)
-        print(f"✅ Mapa de calor generado con {len(heat_data)} puntos.")
-    else:
-        print("🛑 Advertencia: No se encontraron coordenadas válidas para generar el mapa de calor.")
-
-
-    # Cargar la capa de distritos (sin cambios)
-    boroughs_geojson_url = 'https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=GeoJSON'
-    try:
-        folium.GeoJson(
-            boroughs_geojson_url,
-            style_function=lambda feature: {
-                'color': '#007bff', 'weight': 1, 'fillOpacity': 0.1,
-            },
-            tooltip=folium.GeoJsonTooltip(
-                fields=['boro_name'], aliases=['Distrito:'],
-                style=("background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;")
-            )
-        ).add_to(m)
-        print("✅ Capa de distritos (boroughs) cargada desde la API.")
-    except Exception as e:
-        print(f"🛑 Error al cargar el GeoJSON desde la URL: {e}")
-
-    map_html = m._repr_html_()
-    return render_template('heatmap.html', map_html=map_html)
-# --- Generar los gráficos una vez al iniciar la app ---
+# --- 3. Llamada a la Función (ahora que ya está definida) ---
 generate_plots()
 
+# --- 4. Rutas de la Aplicación ---
+@app.route('/')
+def home():
+    return render_template('index.html', metrics=metrics)
+
+@app.route('/forecast', methods=['GET', 'POST'])
+def forecast():
+    predictions = None
+    input_values = request.form.to_dict() if request.method == 'POST' else {}
+
+    if request.method == 'POST':
+        try:
+            form_data = request.form.to_dict()
+            input_df = pd.DataFrame(columns=model_columns)
+            input_df.loc[0] = 0
+            
+            input_df['latitude'] = float(form_data['latitude'])
+            input_df['longitude'] = float(form_data['longitude'])
+            input_df['hour'] = int(form_data['hour'])
+            input_df['day_of_week'] = int(form_data['day_of_week'])
+            input_df['month'] = int(form_data['month'])
+            
+            numerical_cols = scaler.feature_names_in_
+            input_df.loc[:, numerical_cols] = scaler.transform(input_df[numerical_cols])
+
+            probabilities = model.predict_proba(input_df)[0]
+            top3_indices = np.argsort(probabilities)[-3:][::-1]
+            predictions = [{"crime": label_encoder.classes_[i], "probability": round(probabilities[i] * 100, 2)} for i in top3_indices]
+        except Exception as e:
+            predictions = [{"crime": f"Error en la predicción: {e}", "probability": 0}]
+
+    return render_template('forecast.html', predictions=predictions, input_values=input_values)
+
+@app.route('/map')
+def map_view():
+    folium_map = None
+    if df is not None and not df.empty:
+        df_clean = df.dropna(subset=['latitude', 'longitude'])
+        sample_size = min(10000, len(df_clean))
+        map_sample = df_clean.sample(n=sample_size, random_state=42)
+        
+        m = folium.Map(location=[40.7128, -74.0060], zoom_start=11)
+        heat_data = [[row['latitude'], row['longitude']] for index, row in map_sample.iterrows()]
+        HeatMap(heat_data, radius=12).add_to(m)
+        folium_map = m._repr_html_()
+
+    return render_template('map.html', folium_map=folium_map)
+
+# --- 5. Punto de Entrada para Ejecución ---
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

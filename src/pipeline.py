@@ -1,35 +1,48 @@
-# src/pipeline.py
-from prefect import task, flow
-from .config import COMPLAINTS_URL, RAW_DATA_PATH, PROCESSED_DATA_PATH, TARGET, MODEL_PATH, PREPROCESSOR_PATH
-from .data_ingestion import fetch_data
-from .preprocessing import preprocess
-from .train import train_model
-from .evaluate import evaluate
+# src/pipeline.py (ACTUALIZADO PARA LA HIPÓTESIS POLICIAL)
 
-@task
-def fetch_data_task():
-    return fetch_data(url=COMPLAINTS_URL, save_path=RAW_DATA_PATH)
+from prefect import flow
+from src.data_ingestion import ingest_and_load_data
+from src.preprocessing import preprocess_and_fuse_data # Renombramos la función para claridad
+from src.train import train_model_task
+from src.evaluate import evaluate_model_task
+import os
 
-@task
-def preprocess_data_task(raw_path):
-    return preprocess(raw_data_path=raw_path, processed_data_path=PROCESSED_DATA_PATH, target=TARGET)
+@flow(name="NYC Crime Full ETL and Training")
+def crime_prediction_pipeline():
+    # ...
 
-@task
-def train_model_task(processed_path):
-    return train_model(processed_data_path=processed_path, model_path=MODEL_PATH, preprocessor_path=PREPROCESSOR_PATH)
+    # URLs de los datasets
+# URLs de los datasets (CON TODAS LAS URLs CORRECTAS)
 
-@task
-def evaluate_model_task(processed_path, model_path):
-    evaluate(processed_data_path=processed_path, model_path=model_path)
+    urls = {
+        "complaints": "https://data.cityofnewyork.us/resource/qgea-i56i.csv",
+        "arrests": "https://data.cityofnewyork.us/resource/uip8-fykc.csv",
+        # ¡ESTA ES LA URL MÁS RECIENTE Y ACTIVA PARA LAS PARADAS!
+        "vehicle_stops": "https://data.cityofnewyork.us/resource/fe2c-6g96.csv" 
+    }
 
-@flow(name="NYC Crime Prediction Flow")
-def crime_prediction_flow():
-    """Main pipeline to run the full ML workflow.
-       Pipeline principal para ejecutar el flujo de trabajo de ML completo."""
-    raw_path = fetch_data_task()
-    processed_path = preprocess_data_task(raw_path)
-    model_path_result = train_model_task(processed_path)
-    evaluate_model_task(processed_path, model_path_result)
+    # Asegurarse de que los directorios necesarios existan
+    os.makedirs('data/raw', exist_ok=True)
+    os.makedirs('models', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
+
+    # --- 1. INGESTIÓN DE DATOS ---
+    raw_dataframes = ingest_and_load_data(urls)
+
+    # --- 2. PREPROCESAMIENTO Y FUSIÓN DE DATOS ---
+    X_train, X_test, y_train, y_test, label_encoder, location_analysis = preprocess_and_fuse_data(
+        complaints_df=raw_dataframes["complaints"],
+        arrests_df=raw_dataframes["arrests"],
+        vehicle_stops_df=raw_dataframes["vehicle_stops"]
+    )
+
+    model = train_model_task(X_train, y_train)
+
+    # --- 4. EVALUACIÓN DEL MODELO ---
+    evaluate_model_task(model, X_test, y_test, label_encoder, location_analysis)
+
+    print("--- PIPELINE COMPLETADO EXITOSAMENTE ---")
+
 
 if __name__ == "__main__":
-    crime_prediction_flow()
+    crime_prediction_pipeline()
