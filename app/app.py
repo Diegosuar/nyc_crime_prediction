@@ -2,6 +2,9 @@
 from flask import Flask, render_template, url_for, request
 import pandas as pd
 import joblib
+
+import matplotlib
+matplotlib.use('Agg')  
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
