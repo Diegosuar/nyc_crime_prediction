@@ -1,0 +1,8 @@
+pandas
+scikit-learn
+prefect
+seaborn
+matplotlib
+folium
+openpyxl
+flask

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="bg-light p-5 rounded">
+    <h1>Mapa de Calor de Denuncias (Complaint Heatmap)</h1>
+    <p class="lead">Este mapa visualiza la concentración de todas las denuncias de crímenes en NYC. Las zonas más "calientes" (rojas) indican una mayor densidad de incidentes reportados. (This map visualizes the concentration of all crime complaints in NYC. "Hotter" areas indicate a higher density of reported incidents.)</p>
+    
+    {{ map_html|safe }}
+
+  </div>
+{% endblock %}
