@@ -1,20 +1,18 @@
-/* --- Estilos Globales --- */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     margin: 0;
-    background-color: #f8f9fa; /* Un gris muy claro */
-    color: #343a40; /* Gris oscuro para texto */
-    display: flex; /* Usamos flexbox para el layout principal */
+    background-color: #f8f9fa; 
+    display: flex; 
     min-height: 100vh;
 }
 
 h1, h2, h3 {
-    color: #212529; /* Casi negro */
+    color: #212529; 
     margin-bottom: 0.8em;
 }
 
 a {
-    color: #007bff; /* Azul estándar de Bootstrap */
+    color: #007bff; 
     text-decoration: none;
 }
 
@@ -22,7 +20,6 @@ a:hover {
     text-decoration: underline;
 }
 
-/* --- Layout Principal --- */
 .page-container {
     display: flex;
     width: 100%;
@@ -36,22 +33,19 @@ a:hover {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    /* --- INICIO DE LA MODIFICACIÓN --- */
-    position: sticky; /* Hace que se quede fijo */
-    top: 0;           /* Lo pega a la parte superior */
-    height: 100vh;    /* Ocupa toda la altura de la ventana */
-    overflow-y: auto; /* Permite scroll DENTRO del sidebar si es necesario */
-    /* --- FIN DE LA MODIFICACIÓN --- */
+    position: sticky; 
+    top: 0;           
+    height: 100vh;  
+    overflow-y: auto; 
+    
 }
 
 .main-content {
     flex-grow: 1;
     padding: 30px 40px;
-    /* Ya debería permitir scroll si el contenido es más alto que la ventana */
-    /* overflow-y: auto; */ /* Esta línea ya debería estar implícita o puedes añadirla si falta */
 }
 
-/* --- Estilos del Sidebar --- */
+
 .sidebar-title {
     font-size: 1.6em;
     text-align: center;
@@ -63,34 +57,31 @@ a:hover {
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espacio entre enlaces */
+    gap: 10px; 
 }
 
 .nav-link {
-    color: #ced4da; /* Gris claro */
+    color: #ced4da; 
     padding: 12px 15px;
     border-radius: 6px;
     transition: background-color 0.2s ease, color 0.2s ease;
     font-size: 1.05em;
-    display: block; /* Ocupa todo el ancho */
+    display: block; 
 }
-
 .nav-link:hover {
-    background-color: #495057; /* Gris un poco más claro */
+    background-color: #495057; 
     color: #ffffff;
     text-decoration: none;
 }
-
 .nav-link.active {
-    background-color: #007bff; /* Azul para el enlace activo */
+    background-color: #007bff; 
     color: #ffffff;
     font-weight: 500;
 }
 
-/* --- Estilos del Contenido Principal --- */
 .content-header {
     margin-bottom: 30px;
-    border-bottom: 1px solid #dee2e6; /* Separador ligero */
+    border-bottom: 1px solid #dee2e6;
     padding-bottom: 15px;
 }
 
@@ -100,23 +91,23 @@ a:hover {
 }
 
 .content-header .subtitle {
-    color: #6c757d; /* Gris secundario */
+    color: #6c757d; 
     font-size: 1.1em;
     text-align: center;
 }
 
-/* --- Tarjetas (Cards) --- */
+
 .card {
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra suave */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
     padding: 25px;
-    margin-bottom: 20px; /* Espacio entre tarjetas */
-    border: 1px solid #e9ecef; /* Borde muy sutil */
+    margin-bottom: 20px; 
+    border: 1px solid #e9ecef; 
 }
 
 .full-width-card {
-    grid-column: 1 / -1; /* Hace que la tarjeta ocupe todo el ancho en un grid */
+    grid-column: 1 / -1; 
 }
 
 .error-card {
@@ -126,10 +117,9 @@ a:hover {
     padding: 15px;
 }
 
-/* --- Grid de Métricas --- */
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Columnas flexibles */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
     gap: 20px;
 }
 
@@ -153,7 +143,6 @@ a:hover {
     margin-top: 8px;
 }
 
-/* --- Análisis de Lugares --- */
 .location-lists {
     display: flex;
     justify-content: space-around;
@@ -175,7 +164,7 @@ a:hover {
 }
 
 .location-lists li {
-    background-color: #e9ecef; /* Fondo gris claro */
+    background-color: #e9ecef; 
     margin-bottom: 6px;
     padding: 8px 12px;
     border-radius: 4px;
@@ -183,10 +172,10 @@ a:hover {
     color: #495057;
 }
 
-/* --- Grid de Gráficos --- */
+
 .plots-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    grid-template-columns: 1fr 1fr; 
     gap: 20px;
     margin-top: 30px;
 }
@@ -204,18 +193,18 @@ a:hover {
 .plot-card img {
     max-width: 100%;
     height: auto;
-    border-radius: 4px; /* Bordes redondeados sutiles */
+    border-radius: 4px; 
     margin-top: 10px;
 }
 
 .forecast-container {
     display: grid;
-    grid-template-columns: 1fr 1.5fr; /* Columna más estrecha para input, más ancha para resultado */
+    grid-template-columns: 1fr 1.5fr; 
     gap: 30px;
-    align-items: flex-start; /* Alinea los items al inicio */
+    align-items: flex-start; 
 }
 
-/* Columna de Input (Mapa + Form) */
+
 .input-column h2 {
     margin-top: 0;
     margin-bottom: 20px;
@@ -230,10 +219,9 @@ a:hover {
     margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border: 1px solid #eee; /* Borde sutil */
+    border: 1px solid #eee; 
 }
 
-/* Formulario */
 .forecast-form {
     background-color: #ffffff;
     padding: 25px;
@@ -243,10 +231,9 @@ a:hover {
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas */
-    gap: 15px 20px; /* Espaciado vertical y horizontal */
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px 20px; 
 }
-
 .form-group {
     margin-bottom: 5px;
 }
@@ -278,14 +265,14 @@ a:hover {
 }
 
 .full-width {
-    grid-column: 1 / -1; /* Ocupa ambas columnas */
+    grid-column: 1 / -1; 
 }
 
 .submit-btn {
     grid-column: 1 / -1;
     padding: 12px 20px;
     margin-top: 15px;
-    background-color: #198754; /* Verde Bootstrap */
+    background-color: #198754; 
     color: white;
     border: none;
     border-radius: 5px;
@@ -296,17 +283,17 @@ a:hover {
 }
 
 .submit-btn:hover {
-    background-color: #157347; /* Verde más oscuro */
+    background-color: #157347; 
 }
 
-/* Columna de Resultados */
+
 .results-column {
     background-color: #ffffff;
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    position: sticky; /* Se queda fijo al hacer scroll */
-    top: 30px; /* Margen superior cuando está fijo */
+    position: sticky; 
+    top: 30px; 
 }
 .results-column h2 {
      margin-top: 0;
@@ -319,14 +306,14 @@ a:hover {
 .result-item {
     margin-bottom: 20px;
     padding: 20px;
-    background-color: #f8f9fa; /* Fondo gris claro */
+    background-color: #f8f9fa; 
     border-radius: 6px;
-    border-left: 5px solid #0d6efd; /* Borde azul */
+    border-left: 5px solid #0d6efd; 
     text-align: center;
 }
 .result-item .label {
     font-weight: 600;
-    color: #495057; /* Gris oscuro */
+    color: #495057;
     margin-bottom: 10px;
     display: block;
     font-size: 1.1em;
@@ -334,16 +321,16 @@ a:hover {
 .result-item .probability {
     font-size: 2.8em;
     font-weight: 700;
-    color: #0d6efd; /* Azul */
+    color: #0d6efd; 
 }
 .result-item .class {
      font-size: 1.8em;
      font-weight: 600;
-     color: #17a2b8; /* Cyan */
+     color: #17a2b8;
      margin-top: 10px;
 }
 .result-error {
-    color: #dc3545; /* Rojo */
+    color: #dc3545; 
     font-weight: bold;
     font-size: 1.1em;
 }

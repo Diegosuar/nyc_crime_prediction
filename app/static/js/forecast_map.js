@@ -18,35 +18,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLon = parseFloat(lonInput.value) || boroughCoords['NYC'][1];
     const map = L.map('mini-map').setView([currentLat, currentLon], 12);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { // Tile más limpio
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { 
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
     }).addTo(map);
 
-    // Marcador arrastrable
+
     let marker = L.marker([currentLat, currentLon], { draggable: true }).addTo(map);
 
-    // Función para actualizar los inputs
+ 
     function updateInputs(latlng) {
         latInput.value = latlng.lat.toFixed(5);
         lonInput.value = latlng.lng.toFixed(5);
     }
 
-    // Eventos del mapa
     map.on('click', (e) => {
         marker.setLatLng(e.latlng);
         updateInputs(e.latlng);
-        boroughSelect.value = 'NYC'; // Resetea el selector de distrito si hacen clic
+        boroughSelect.value = 'NYC'; 
     });
 
     marker.on('dragend', () => {
         const latlng = marker.getLatLng();
         updateInputs(latlng);
-        boroughSelect.value = 'NYC'; // Resetea el selector de distrito si mueven el marcador
+        boroughSelect.value = 'NYC'; 
     });
 
-    // Evento del selector de distrito
     boroughSelect.addEventListener('change', () => {
         const selectedBorough = boroughSelect.value;
         if (boroughCoords[selectedBorough]) {
@@ -56,7 +54,5 @@ document.addEventListener('DOMContentLoaded', () => {
             updateInputs(L.latLng(coords[0], coords[1]));
         }
     });
-
-    // Inicializar inputs con los valores del marcador
     updateInputs(marker.getLatLng());
 });

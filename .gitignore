@@ -39,7 +39,6 @@ venv.bak/
 .ipynb_checkpoints
 
 # Data files
-# ¡IMPORTANTE! No subas los datos crudos o procesados a Git.
 data/raw/
 data/processed/
 

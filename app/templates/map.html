@@ -4,15 +4,13 @@
 
 {% block content %}
 <style>
-    /* Estilos específicos para la página del mapa */
     .map-container {
         width: 100%;
-        height: 80vh; /* Ajusta la altura del mapa como necesites */
+        height: 80vh; 
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        overflow: hidden; /* Asegura que el mapa no se salga del contenedor */
+        overflow: hidden; 
     }
-    /* Folium a veces necesita un tamaño explícito */
     .folium-map {
          width: 100%;
          height: 100%;
@@ -29,7 +27,7 @@
         {{ folium_map | safe }}
     {% else %}
         <p style="text-align: center; color: red; padding-top: 50px;">
-            ⚠️ No se pudo generar el mapa. Verifica que el DataFrame 'df' se haya cargado correctamente en la aplicación y que contenga las columnas 'latitude' y 'longitude'.
+            No se pudo generar el mapa. Verifica que el DataFrame 'df' se haya cargado correctamente en la aplicación y que contenga las columnas 'latitude' y 'longitude'.
         </p>
     {% endif %}
 </div>

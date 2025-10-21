@@ -1,5 +1,3 @@
-# src/evaluate.py (VERSIÓN FINAL CON GRÁFICOS Y MÉTRICAS COMPLETAS)
-
 import pandas as pd
 import numpy as np
 from prefect import task
@@ -7,8 +5,7 @@ from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
 import json
 import seaborn as sns
 import matplotlib.pyplot as plt
-import os # Importar os para manejo de directorios
-
+import os 
 @task
 def evaluate_model_task(model, X_test: pd.DataFrame, y_test: pd.Series, label_encoder, location_analysis: dict):
     """
@@ -17,9 +14,9 @@ def evaluate_model_task(model, X_test: pd.DataFrame, y_test: pd.Series, label_en
     """
     print(" -> Evaluando el modelo y generando reporte final con gráficos...")
 
-    # --- Evaluación del Modelo ---
+    # Evaluación del Modelo
     y_pred = model.predict(X_test)
-    y_pred_proba = model.predict_proba(X_test)[:, 1] # Probabilidad de la clase positiva (Violento=1)
+    y_pred_proba = model.predict_proba(X_test)[:, 1] 
 
     accuracy = accuracy_score(y_test, y_pred)
     # Calculamos AUC-ROC
@@ -28,18 +25,16 @@ def evaluate_model_task(model, X_test: pd.DataFrame, y_test: pd.Series, label_en
         print(f" -> AUC-ROC Score: {auc_roc:.4f}")
     except ValueError as e:
         print(f" -> ADVERTENCIA: No se pudo calcular AUC-ROC: {e}")
-        auc_roc = None # O manejarlo como 0 o NaN
-
+        auc_roc = None 
     report = classification_report(y_test, y_pred, target_names=label_encoder.classes_, output_dict=True)
     report['accuracy'] = accuracy
     if auc_roc is not None:
         report['auc_roc'] = auc_roc
 
-    # Extraemos el F1-Score específico para la clase "Violento" (asumiendo que es la clase '1')
+    # Extraemos el F1-Score específico para la clase "Violento" 
     f1_violent = report.get('Violento', {}).get('f1-score', None)
 
-    # --- Generación de Gráficos ---
-    img_dir = os.path.join('app', 'static', 'img') # Directorio donde guardar las imágenes
+    img_dir = os.path.join('app', 'static', 'img') 
     os.makedirs(img_dir, exist_ok=True)
 
     # 1. Matriz de Confusión
@@ -56,7 +51,7 @@ def evaluate_model_task(model, X_test: pd.DataFrame, y_test: pd.Series, label_en
 
     # 2. Importancia de Características
     if hasattr(model, 'feature_importances_'):
-        importances = pd.Series(model.feature_importances_, index=X_test.columns).nlargest(15) # Top 15
+        importances = pd.Series(model.feature_importances_, index=X_test.columns).nlargest(15) 
         plt.figure(figsize=(10, 8))
         sns.barplot(x=importances.values, y=importances.index, palette='viridis')
         plt.title('Top 15 Características Más Importantes')
@@ -74,12 +69,10 @@ def evaluate_model_task(model, X_test: pd.DataFrame, y_test: pd.Series, label_en
         fi_path = None
 
 
-    # --- Compilar todo en un solo archivo JSON ---
     final_metrics = {
         "model_performance": report,
         "location_analysis": location_analysis,
         "feature_importances": feature_importances_dict,
-        # Guardamos las rutas relativas a la carpeta 'static' para usarlas en HTML
         "plot_paths": {
              "confusion_matrix": f"img/confusion_matrix.png" if cm_path else None,
              "feature_importance": f"img/feature_importance.png" if fi_path else None

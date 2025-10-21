@@ -10,22 +10,18 @@
 
 {% block content %}
 <style>
-    /* --- Estilos específicos para la página de predicción --- */
     .forecast-container {
         display: grid;
-        grid-template-columns: 1fr 1.5fr; /* Columna para mapa/form, columna para resultado */
+        grid-template-columns: 1fr 1.5fr; 
         gap: 30px;
-        align-items: flex-start; /* Alinea los items al inicio */
+        align-items: flex-start; 
     }
-
     .input-column h2, .results-column h2 {
         margin-top: 0;
         margin-bottom: 20px;
         color: #333;
         font-weight: 600;
     }
-
-    /* Mapa pequeño */
     #mini-map {
         height: 300px;
         width: 100%;
@@ -33,8 +29,6 @@
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    /* Formulario */
     .forecast-form {
         background-color: #ffffff;
         padding: 25px;
@@ -44,12 +38,12 @@
 
     .form-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Dos columnas para los campos */
-        gap: 15px 20px; /* Espacio vertical y horizontal */
+        grid-template-columns: 1fr 1fr; 
+        gap: 15px 20px; 
     }
 
     .form-group {
-        margin-bottom: 5px; /* Reducido el margen inferior */
+        margin-bottom: 5px; 
     }
 
     .form-group label {
@@ -78,14 +72,14 @@
     }
 
     .full-width {
-        grid-column: 1 / -1; /* Ocupa todo el ancho */
+        grid-column: 1 / -1; 
     }
 
     .submit-btn {
         grid-column: 1 / -1;
         padding: 12px 20px;
         margin-top: 15px;
-        background-color: #28a745; /* Verde */
+        background-color: #28a745; 
         color: white;
         border: none;
         border-radius: 5px;
@@ -96,17 +90,16 @@
     }
 
     .submit-btn:hover {
-        background-color: #218838; /* Verde más oscuro */
+        background-color: #218838; 
     }
 
-    /* Resultados */
     .results-column {
         background-color: #ffffff;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        position: sticky; /* Se queda fijo al hacer scroll */
-        top: 30px; /* Margen superior cuando está fijo */
+        position: sticky; 
+        top: 30px; 
     }
 
     .result-item {
@@ -114,7 +107,7 @@
         padding: 15px;
         background-color: #e9ecef;
         border-radius: 6px;
-        border-left: 5px solid #007bff; /* Borde azul */
+        border-left: 5px solid #007bff; 
     }
     .result-item .label {
         font-weight: 600;
@@ -125,17 +118,17 @@
     .result-item .probability {
         font-size: 2.2em;
         font-weight: 700;
-        color: #007bff; /* Azul */
+        color: #007bff; 
         text-align: center;
     }
     .result-item .class {
          font-size: 1.5em;
          font-weight: 600;
-         color: #17a2b8; /* Azul verdoso */
+         color: #17a2b8; 
          text-align: center;
     }
     .result-error {
-        color: #dc3545; /* Rojo */
+        color: #dc3545; 
         font-weight: bold;
     }
 
@@ -151,14 +144,14 @@
         <h2>Introduce los Detalles</h2>
         
         <div class="card">
-            <p style="text-align:center; margin-top:0; color:#555;">Haz clic en el mapa para seleccionar la ubicación:</p>
+            <p style="text-align:center; margin-top:0; color:#555;">Haga clic en el mapa para seleccionar la ubicación:</p>
             <div id="mini-map"></div>
         </div>
 
         <form class="forecast-form" method="POST">
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="borough">📍 Distrito (Borough):</label>
+                    <label for="borough">Distrito (Borough):</label>
                     <select id="borough" name="borough">
                         <option value="NYC" selected>Toda la Ciudad (Centro)</option>
                         <option value="Manhattan">Manhattan</option>
@@ -177,22 +170,22 @@
                     <input type="number" step="any" id="longitude" name="longitude" required value="{{ input_values.longitude or '-74.0060' }}">
                 </div>
                 <div class="form-group">
-                    <label for="hour">⏰ Hora (0-23):</label>
+                    <label for="hour">Hora (0-23):</label>
                     <input type="number" id="hour" name="hour" min="0" max="23" required value="{{ input_values.hour or '14' }}">
                 </div>
                  <div class="form-group">
-                    <label for="month">🗓️ Mes (1-12):</label>
+                    <label for="month">Mes (1-12):</label>
                     <input type="number" id="month" name="month" min="1" max="12" required value="{{ input_values.month or '10' }}">
                 </div>
                 <div class="form-group">
-                    <label for="is_weekend">📅 Fin de Semana:</label>
+                    <label for="is_weekend"> Fin de Semana:</label>
                     <select id="is_weekend" name="is_weekend">
                         <option value="0" {% if input_values.is_weekend == '0' %}selected{% endif %}>No (Lun-Vie)</option>
                         <option value="1" {% if input_values.is_weekend == '1' %}selected{% endif %}>Sí (Sáb-Dom)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="prem_typ_desc">🏢 Tipo de Lugar:</label>
+                    <label for="prem_typ_desc">Tipo de Lugar:</label>
                     <select id="prem_typ_desc" name="prem_typ_desc">
                         <option value="STREET" {% if input_values.prem_typ_desc == 'STREET' %}selected{% endif %}>STREET</option>
                         <option value="RESIDENCE - APT. HOUSE" {% if input_values.prem_typ_desc == 'RESIDENCE - APT. HOUSE' %}selected{% endif %}>RESIDENCE - APT. HOUSE</option>
@@ -202,7 +195,7 @@
                         </select>
                 </div>
                 <div class="form-group full-width">
-                    <label for="ofns_desc">🚨 Tipo de Crimen Reportado:</label>
+                    <label for="ofns_desc">Tipo de Crimen Reportado:</label>
                     <select id="ofns_desc" name="ofns_desc">
                         {% for crime in crime_types %}
                             <option value="{{ crime }}" {% if input_values.ofns_desc == crime %}selected{% endif %}>{{ crime }}</option>
@@ -233,7 +226,7 @@
                  </div>
             {% endfor %}
         {% else %}
-            <p style="text-align: center; color: #555;">Completa el formulario y haz clic en "Predecir" para ver el resultado.</p>
+            <p style="text-align: center; color: #555;">Complete el formulario y haga clic en "Predecir" para ver el resultado.</p>
         {% endif %}
     </div>
 </div>

@@ -1,5 +1,3 @@
-# src/data_ingestion.py (ACTUALIZADO)
-
 import pandas as pd
 import requests
 from prefect import task
