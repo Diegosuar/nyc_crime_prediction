@@ -37,7 +37,7 @@ Este enfoque permite evaluar el riesgo potencial de los incidentes y podría ser
 
 El proyecto está organizado de la siguiente manera:
 
-bash
+```bash
 
 /proyecto_crimen_nyc
 |
@@ -88,7 +88,7 @@ bash
 |-- requirements.txt
 |-- run_app.py
 `-- README.md 
-
+```
 
 
 ##  Tecnologías Utilizadas
@@ -110,15 +110,15 @@ Sigue estos pasos para configurar y ejecutar el proyecto en tu máquina local.
 2. Clonar el Repositorio
     - Abre una terminal y clona este repositorio (o simplemente descarga y descomprime el código en una carpeta).
 
-Bash 
-git clone <URL_DEL_REPOSITORIO>
+```Bash 
+git clone https://github.com/Diegosuar/nyc_crime_prediction
 cd proyecto_crimen_nyc
-
+```
 
 3. Configurar el Entorno Virtual
 Crea y activa un entorno virtual.
 
-Bash
+```Bash
 
 # Usando venv
 python -m venv env
@@ -127,34 +127,34 @@ source env/bin/activate  # En Windows: env\Scripts\activate
 # O usando conda
 conda create -n ml-final python=3.9
 conda activate ml-final
-
+```
 
 4. Instalar Dependencias
 Instala todas las librerías necesarias con el siguiente comando:
 
-Bash
+```Bash
 pip install -r requirements.txt
-
+```
 
 5. Ejecutar el Pipeline de Datos (Paso Crucial)
 Antes de poder usar la aplicación web, debes ejecutar el pipeline de Prefect. Este paso se encarga de descargar los datos, limpiarlos y entrenar el modelo de Machine Learning.
 
 Este comando solo necesita ser ejecutado una vez (o cada vez que quieras re-entrenar el modelo con datos nuevos).
 
-Bash
+```Bash
 python -m src.pipeline
 Espera a que la terminal muestre que todas las tareas se han completado. Esto creará los archivos necesarios en las carpetas data/processed y models.
-
+```
 
 6. Iniciar la Aplicación Web
 Una vez que el pipeline ha terminado, inicia el servidor de Flask:
 
 
-Bash
+```Bash
 python run_app.py
 La terminal te mostrará un mensaje indicando que el servidor está activo y escuchando en una dirección, usualmente http://127.0.0.1:5001.
 
-
+```
 7. Acceder a la Aplicación
 Abre tu navegador web y ve a la siguiente dirección:
 
