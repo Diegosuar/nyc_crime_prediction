@@ -5,7 +5,7 @@ Este proyecto implementa un pipeline completo de ciencia de datos para analizar 
 El flujo de trabajo está orquestado con *Prefect* para garantizar la reproducibilidad y la automatización del preprocesamiento de datos y el entrenamiento del modelo.
 
 ---
-##  Objetivo y Pregunta de Investigación
+## Objetivo y Pregunta de Investigación
 
 El objetivo principal es responder a la pregunta:
 
@@ -14,7 +14,7 @@ El objetivo principal es responder a la pregunta:
 Este enfoque permite evaluar el riesgo potencial de los incidentes y podría ser útil para la asignación de recursos de seguridad pública.
 
 ---
-## Características Principales
+##  Características Principales
 
 * *Dashboard de Analítica*: Página principal con métricas clave del modelo (Precisión ~94.5%), gráficos sobre la distribución de crímenes originales y análisis de los lugares con mayor incidencia.
 * *Herramienta de Predicción: Permite al usuario ingresar detalles de un incidente hipotético (ubicación, hora, día, mes, tipo de lugar, tipo de ofensa) para obtener una predicción en tiempo real de la **probabilidad de que sea un crimen violento (Felony)*.
@@ -24,10 +24,10 @@ Este enfoque permite evaluar el riesgo potencial de los incidentes y podría ser
     * Ingeniería de características avanzada (cíclicas temporales, flags de fin de semana/noche, clustering geoespacial K-Means).
     * Balanceo de clases con SMOTE.
     * Entrenamiento optimizado con XGBoost y RandomizedSearchCV.
-* Alta Precisión: El modelo final alcanza una **precisión general del 94.50%* en la predicción de crímenes violentos vs. no violentos.
+* *Alta Precisión: El modelo final alcanza una **precisión general del 94.50%* en la predicción de crímenes violentos vs. no violentos.
 
 ---
-## Datasets Utilizados
+##  Datasets Utilizados
 
 * *Dataset Principal:* [NYPD Complaint Data Historic](https://data.cityofnewyork.us/resource/qgea-i56i.csv) - Contiene los registros históricos de denuncias, incluyendo tipo de ofensa, categoría legal (Felony, Misdemeanor, Violation), ubicación y fecha/hora. Es la fuente para las características y la variable objetivo (is_violent).
 * *(Opcional/Exploratorio):* Se exploró la integración con datos de arrestos y paradas de vehículos, pero no se utilizaron directamente en las características del modelo final debido a la dificultad para establecer una unión fiable o la falta de disponibilidad de datos consistentes.
